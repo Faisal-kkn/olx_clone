@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 
 import Logo from '../../olx-logo.png';
 import { FirebaseContext } from '../../store/Context';
-import { useHistory } from 'react-router-dom';
+import { useHistory, Link } from 'react-router-dom';
 import './Signup.css';
 
 export default function Signup() {
@@ -14,19 +14,33 @@ export default function Signup() {
   const [password, setPassword] = useState('')
   const {firebase} = useContext(FirebaseContext)
 
+  const [validation, setValidation] = useState(null);
+
+
   const handlSubmit = (e)=>{
     e.preventDefault()
-    firebase.auth().createUserWithEmailAndPassword(email, password).then((result)=>{
-      result.user.updateProfile({displayName: username}).then(()=>{
-        firebase.firestore().collection('user').add({
-          id: result.user.uid,
-          username: username,
-          phone: phone
-        }).then(()=>{
-          history.push("/login")
+    if (username == "" || email == "" || password == "" || phone.length < 10 ) {
+      e.preventDefault()
+      setValidation('All Field are Required')
+    }else{
+      firebase.auth().createUserWithEmailAndPassword(email, password).then((result)=>{
+        result.user.updateProfile({displayName: username}).then(()=>{
+          firebase.firestore().collection('user').add({
+            id: result.user.uid,
+            username: username,
+            phone: phone
+          }).then(()=>{
+            history.push("/login")
+          }).catch((error) => {
+            setValidation(error.message)
+          })
+        }).catch((error) => {
+          setValidation(error.message)
         })
+      }).catch((error) => {
+        setValidation(error.message)
       })
-    })
+    }
   }
 
   return (
@@ -34,6 +48,7 @@ export default function Signup() {
       <div className="signupParentDiv">
         <img width="200px" height="200px" src={Logo}></img>
         <form onSubmit={handlSubmit}>
+          <p className='validation'>{validation}</p>
           <label htmlFor="fname">Username</label>
           <br />
           <input
@@ -85,7 +100,7 @@ export default function Signup() {
           <br />
           <button type='onSubmit'>Signup</button>
         </form>
-        <a>Login</a>
+        <Link to="/login" >Login</Link>
       </div>
     </div>
   );

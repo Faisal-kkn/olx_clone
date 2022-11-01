@@ -9,18 +9,28 @@ function Login() {
   const [password, setPassword] = useState('');
   const { firebase } = useContext(FirebaseContext)
   const history = useHistory()
+  const [validation, setValidation] = useState(null);
   const handleLogin = (e)=>{
-    e.preventDefault()
-    firebase.auth().signInWithEmailAndPassword(email, password).then(()=>{
-      history.push('/')
-    }).catch((error)=>{
-      alert(error.message)
-    })
+  
+    
+    if (email == "" || password == "" || !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(email)){
+      e.preventDefault()
+      setValidation('Email and Password is Required')
+    }else{
+      e.preventDefault()
+      setValidation('')
+      firebase.auth().signInWithEmailAndPassword(email, password).then(() => {
+        history.push('/')
+      }).catch((error) => {
+        setValidation(error.message) 
+      })
+    }
   }
   return (
     <div>
       <div className="loginParentDiv">
         <img width="200px" height="200px" src={Logo}></img>
+        <p className='validation'>{validation}</p>
         <form onSubmit={handleLogin}>
           <label htmlFor="fname">Email</label>
           <br />
@@ -33,6 +43,7 @@ function Login() {
             name="email"
             defaultValue="John"
           />
+          
           <br />
           <label htmlFor="lname">Password</label>
           <br />
